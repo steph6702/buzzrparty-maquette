@@ -1,0 +1,562 @@
+<title>Buzzrparty Fix Pass</title>
+<style>
+  :root{
+    --ground:#0A0A0B;
+    --surface:#141416;
+    --surface-2:#1D1D20;
+    --line:#2A2A2E;
+    --ink:#F5F3F0;
+    --ink-dim:#9C978F;
+    --ink-faint:#6B6862;
+    --accent:#FF8A1E;
+    --accent-deep:#C25E06;
+    --warn:#E8B23A;
+    --bad:#E5594E;
+
+    --display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;line-height:1.55;margin:0;padding:0;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:1220px;margin:0 auto;padding:40px 24px 96px;
+    display:flex;flex-direction:column;gap:52px;
+  }
+
+  /* ---------- language toggle ---------- */
+  .langbar{display:flex;justify-content:flex-end;}
+  .langbar .set{
+    display:flex;border:1px solid var(--line);border-radius:99px;
+    padding:3px;gap:2px;background:var(--surface);
+  }
+  .langbar button{
+    font-family:var(--body);font-size:11px;font-weight:800;
+    letter-spacing:.12em;text-transform:uppercase;
+    padding:6px 15px;border-radius:99px;border:0;cursor:pointer;
+    background:transparent;color:var(--ink-faint);
+  }
+  .langbar button[aria-pressed="true"]{background:var(--accent);color:#160B02;}
+  .langbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* ---------- masthead ---------- */
+  .masthead{display:flex;flex-direction:column;gap:18px;max-width:62ch;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  h1{
+    font-family:var(--display);font-size:clamp(36px,5.6vw,58px);
+    font-weight:800;letter-spacing:-.025em;line-height:.98;
+    text-transform:uppercase;text-wrap:balance;margin:0;
+  }
+  h1 em{font-style:normal;color:var(--accent);}
+  .standfirst{color:var(--ink-dim);font-size:17px;margin:0;}
+  .standfirst strong{color:var(--ink);font-weight:600;}
+  .disclaimer{
+    border-left:2px solid var(--line);padding-left:16px;
+    font-size:13.5px;color:var(--ink-faint);max-width:58ch;
+  }
+
+  /* ---------- filmstrip ---------- */
+  .screens{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));
+    gap:36px 26px;align-items:start;justify-items:center;
+  }
+  .screen{display:flex;flex-direction:column;gap:14px;width:100%;max-width:300px;}
+  .screen-label{display:flex;flex-direction:column;gap:3px;}
+  .screen-name{font-family:var(--display);font-size:17px;font-weight:800;text-transform:uppercase;margin:0;}
+  .screen-role{font-size:12.5px;color:var(--ink-faint);margin:0;}
+
+  /* ---------- phone ---------- */
+  .phone{
+    position:relative;width:100%;aspect-ratio:300/610;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:26px;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 18px 44px rgba(0,0,0,.5);
+  }
+  .appbar{
+    display:flex;align-items:center;gap:8px;padding:11px 13px;
+    border-bottom:1px solid var(--line);background:var(--surface-2);
+    flex:0 0 auto;position:relative;
+  }
+  .mark{
+    width:22px;height:22px;border-radius:6px;flex:0 0 auto;
+    background:linear-gradient(150deg,var(--accent),var(--accent-deep));
+  }
+  .wordmark{
+    font-family:var(--display);font-size:13.5px;font-weight:800;
+    text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .lang{
+    margin-left:auto;font-size:9px;letter-spacing:.08em;color:var(--ink-faint);
+    border:1px solid var(--line);border-radius:99px;padding:3px 7px;white-space:nowrap;
+  }
+  .lang b{color:var(--ink);}
+  .back{
+    width:22px;height:22px;border-radius:99px;border:1px solid var(--line);
+    display:grid;place-items:center;font-size:11px;color:var(--ink-dim);flex:0 0 auto;
+  }
+  .stage{flex:1 1 auto;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:10px;}
+
+  /* ---------- app bits ---------- */
+  .kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+  .cta{
+    position:relative;background:linear-gradient(150deg,var(--accent),var(--accent-deep));
+    color:#160B02;border-radius:12px;padding:13px 14px;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .cta-title{font-family:var(--display);font-size:16px;font-weight:800;text-transform:uppercase;}
+  .cta-sub{font-size:10.5px;opacity:.74;font-weight:600;}
+
+  .rows{display:flex;flex-direction:column;gap:6px;}
+  .row{
+    display:flex;align-items:center;gap:9px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:10px;padding:9px 11px;
+  }
+  .row-ico{
+    width:24px;height:24px;border-radius:7px;flex:0 0 auto;
+    background:var(--surface);border:1px solid var(--line);
+    display:grid;place-items:center;font-size:11px;color:var(--accent);
+  }
+  .row-txt{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .row-title{font-size:12px;font-weight:700;}
+  .row-sub{font-size:9.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-arrow{margin-left:auto;color:var(--ink-faint);font-size:11px;}
+
+  .footer-strip{
+    position:relative;margin-top:auto;border-top:1px solid var(--line);
+    padding-top:9px;display:flex;gap:12px;flex-wrap:wrap;
+  }
+  .footer-strip span:not(.pin){font-size:9px;color:var(--ink-faint);letter-spacing:.04em;}
+
+  /* ---------- clips ---------- */
+  .tabs{display:flex;align-items:center;gap:9px;}
+  .tab{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+  .tab.on{color:var(--ink);}
+  .tab-cta{
+    margin-left:auto;background:var(--accent);color:#160B02;font-size:10px;
+    font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:6px 13px;border-radius:99px;white-space:nowrap;
+  }
+
+  .clip{display:flex;flex-direction:column;gap:6px;}
+  .still{
+    aspect-ratio:2/1;border-radius:9px;overflow:hidden;position:relative;
+    background:repeating-linear-gradient(90deg,#1E3D24 0 14px,#22452A 14px 28px);
+    border:1px solid var(--line);flex:0 0 auto;
+  }
+  .still::after{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(120% 90% at 50% 120%, rgba(255,255,255,.10), transparent 60%),
+      linear-gradient(0deg, rgba(0,0,0,.45), transparent 55%);
+  }
+  .still .arc{
+    position:absolute;left:50%;bottom:-30%;transform:translateX(-50%);
+    width:58%;aspect-ratio:1;border:1.5px solid rgba(255,255,255,.26);border-radius:50%;
+  }
+  .still .dur{
+    position:absolute;right:6px;bottom:6px;z-index:2;background:rgba(0,0,0,.66);
+    border-radius:4px;font-size:8.5px;padding:2px 5px;color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .clip-title{position:relative;font-size:12.5px;font-weight:700;line-height:1.25;}
+  .clip-meta{font-size:9.5px;color:var(--ink-faint);}
+  .rating{position:relative;font-size:9.5px;color:var(--ink-faint);}
+  .rating b{color:var(--warn);font-size:11px;font-variant-numeric:tabular-nums;}
+  .btn-primary{
+    background:var(--accent);color:#160B02;border-radius:9px;text-align:center;
+    padding:9px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  }
+  .link-quiet{
+    position:relative;font-size:10px;color:var(--ink-faint);text-align:center;
+    text-decoration:underline;text-underline-offset:2px;
+  }
+  .rule{height:1px;background:var(--line);flex:0 0 auto;}
+
+  /* ---------- live round ---------- */
+  .window{position:relative;display:flex;flex-direction:column;gap:4px;}
+  .window-bar{
+    height:6px;border-radius:99px;background:var(--surface-2);
+    border:1px solid var(--line);position:relative;overflow:hidden;
+  }
+  .window-bar i{
+    position:absolute;top:0;bottom:0;left:34%;width:26%;
+    background:linear-gradient(90deg,var(--accent-deep),var(--accent));
+  }
+  .window-bar u{position:absolute;top:-3px;bottom:-3px;left:47%;width:2px;background:var(--ink);}
+  .window-cap{display:flex;justify-content:space-between;font-size:8.5px;color:var(--ink-faint);}
+  .buzz{
+    margin:6px auto;width:116px;height:116px;border-radius:50%;flex:0 0 auto;
+    background:radial-gradient(circle at 38% 32%,var(--accent),var(--accent-deep) 72%);
+    display:grid;place-items:center;font-family:var(--display);font-size:21px;
+    font-weight:800;color:#1A0C02;letter-spacing:.06em;
+    box-shadow:0 0 0 8px rgba(255,138,30,.10), 0 12px 28px rgba(255,138,30,.22);
+  }
+  .players{display:flex;flex-direction:column;gap:5px;margin-top:auto;}
+  .player{
+    display:flex;align-items:center;gap:8px;font-size:10.5px;padding:6px 9px;
+    border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+  }
+  .player .av{
+    width:17px;height:17px;border-radius:50%;flex:0 0 auto;
+    background:var(--surface);border:1px solid var(--line);
+    display:grid;place-items:center;font-size:8px;color:var(--ink-dim);font-weight:700;
+  }
+  .player .pts{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-dim);font-weight:700;}
+  .player.lead{border-color:var(--accent-deep);}
+  .player.lead .pts{color:var(--accent);}
+
+  /* ---------- failure ---------- */
+  .notice{
+    position:relative;border:1px solid var(--line);border-radius:12px;
+    background:var(--surface-2);padding:14px;display:flex;flex-direction:column;gap:9px;
+  }
+  .notice-top{display:flex;align-items:center;gap:8px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex:0 0 auto;}
+  .notice-title{font-size:12.5px;font-weight:700;}
+  .notice-body{font-size:10.5px;color:var(--ink-dim);line-height:1.5;margin:0;}
+  .retry-line{font-family:var(--mono);font-size:9px;color:var(--ink-faint);display:flex;align-items:center;gap:6px;}
+  .pips{display:flex;gap:3px;}
+  .pips i{width:5px;height:5px;border-radius:50%;background:var(--line);}
+  .pips i.on{background:var(--warn);}
+  .btn-ghost{
+    border:1px solid var(--line);border-radius:9px;text-align:center;padding:8px;
+    font-size:10.5px;font-weight:700;color:var(--ink-dim);
+    letter-spacing:.06em;text-transform:uppercase;
+  }
+
+  /* ---------- pins ---------- */
+  .pin{
+    position:absolute;z-index:6;width:19px;height:19px;border-radius:50%;
+    background:var(--accent);color:#160B02;font-size:10px;font-weight:800;
+    display:grid;place-items:center;box-shadow:0 0 0 3px var(--surface);
+    font-variant-numeric:tabular-nums;
+  }
+  .pin-tr{top:-9px;right:-7px;}
+  .pin-ml{top:50%;left:-7px;transform:translateY(-50%);}
+  .pin-mr{top:50%;right:-7px;transform:translateY(-50%);}
+
+  /* ---------- legend ---------- */
+  .legend-block{display:flex;flex-direction:column;gap:26px;}
+  .legend-head{
+    font-family:var(--display);font-size:12px;font-weight:800;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0;
+  }
+  .legend{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+    gap:22px 44px;margin:0;padding:0;list-style:none;
+  }
+  .legend li{display:flex;gap:12px;align-items:flex-start;}
+  .num{
+    flex:0 0 auto;width:20px;height:20px;border-radius:50%;
+    border:1px solid var(--accent);color:var(--accent);font-size:10.5px;
+    font-weight:800;display:grid;place-items:center;margin-top:3px;
+    font-variant-numeric:tabular-nums;
+  }
+  .txt{font-size:14px;line-height:1.5;color:var(--ink-dim);}
+  .txt b{color:var(--ink);font-weight:600;}
+  .was{display:block;font-size:12.5px;color:var(--ink-faint);margin-top:3px;}
+  .wrap:not(.lang-en) .was::before{content:"Aujourd'hui : ";color:var(--bad);font-weight:600;}
+  .wrap.lang-en .was::before{content:"Today: ";color:var(--bad);font-weight:600;}
+
+  /* ---------- closing ---------- */
+  .closing{
+    border-top:1px solid var(--line);padding-top:30px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;
+  }
+  .closing h2{
+    grid-column:1/-1;font-family:var(--display);font-size:12px;font-weight:800;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0;
+  }
+  .note-title{font-size:14.5px;font-weight:700;margin:0 0 5px;}
+  .note-body{font-size:13.5px;color:var(--ink-dim);margin:0;line-height:1.55;}
+  .note-body code{
+    font-family:var(--mono);font-size:12px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink);
+  }
+
+  @media (max-width:640px){ .wrap{padding:28px 18px 64px;gap:40px;} }
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important;transition:none !important;} }
+</style>
+
+<div class="wrap" id="page">
+
+  <div class="langbar">
+    <div class="set" role="group" aria-label="Langue / Language">
+      <button type="button" id="btn-fr" aria-pressed="true">FR</button>
+      <button type="button" id="btn-en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <header class="masthead">
+    <div class="eyebrow" data-en="Buzzrparty · proposed fixes">Buzzrparty · corrections proposées</div>
+    <h1 data-en="Eight fixes,<br><em>four screens</em>">Huit correctifs,<br><em>quatre écrans</em></h1>
+    <p class="standfirst" data-en="Mockups of the changes suggested after going through the live site on a phone. None of this is a redesign — it's the <strong>same product, same colours, same structure</strong>, with the specific problems taken out.">Maquettes des changements proposés après avoir parcouru le site en ligne sur téléphone. Ce n'est pas une refonte — c'est <strong>le même produit, les mêmes couleurs, la même structure</strong>, avec les problèmes précis en moins.</p>
+    <p class="disclaimer" data-en="Static mockup. Not connected to anything, no real data, clip titles are examples. Built to show what the fixes look like, not to replace anything.">Maquette statique. Rien n'est connecté, aucune donnée réelle, les titres de clips sont des exemples. Faite pour montrer à quoi ressemblent les correctifs, pas pour remplacer quoi que ce soit.</p>
+  </header>
+
+  <section class="screens">
+
+    <!-- 1. ACCUEIL -->
+    <article class="screen">
+      <div class="screen-label">
+        <h2 class="screen-name" data-en="Home">Accueil</h2>
+        <p class="screen-role" data-en="First thing a new player sees">Ce que voit un nouveau joueur en arrivant</p>
+      </div>
+      <div class="phone">
+        <div class="appbar">
+          <span class="pin" style="top:6px;right:96px;">1</span>
+          <div class="mark"></div>
+          <div class="wordmark">Buzzrparty</div>
+          <div class="lang"><b>FR</b> / EN</div>
+        </div>
+        <div class="stage">
+          <div class="cta">
+            <span class="pin pin-tr">2</span>
+            <div class="cta-title" data-en="Play now">Jouer maintenant</div>
+            <div class="cta-sub" data-en="Iconic Moments · 12 clips · 2 min">Iconic Moments · 12 clips · 2 min</div>
+          </div>
+
+          <div class="kicker" data-en="Play with friends">Jouer entre amis</div>
+          <div class="rows">
+            <div class="row">
+              <div class="row-ico">◎</div>
+              <div class="row-txt">
+                <div class="row-title">Watch parties</div>
+                <div class="row-sub" data-en="Create a room, share the link">Crée un salon, partage le lien</div>
+              </div>
+              <div class="row-arrow">›</div>
+            </div>
+            <div class="row">
+              <div class="row-ico">▭</div>
+              <div class="row-txt">
+                <div class="row-title">Viewer TV</div>
+                <div class="row-sub" data-en="TV code + phones as buzzers">Code TV + téléphones en buzzers</div>
+              </div>
+              <div class="row-arrow">›</div>
+            </div>
+          </div>
+
+          <div class="kicker" data-en="Browse">Explorer</div>
+          <div class="rows">
+            <div class="row">
+              <div class="row-ico">◀◀</div>
+              <div class="row-txt">
+                <div class="row-title" data-en="All the replays">Tous les replays</div>
+                <div class="row-sub" data-en="Every format">Tous les formats</div>
+              </div>
+              <div class="row-arrow">›</div>
+            </div>
+            <div class="row">
+              <div class="row-ico">⚡</div>
+              <div class="row-txt">
+                <div class="row-title">BuzzrIQ</div>
+                <div class="row-sub" data-en="Football knowledge quiz">Quiz culture foot</div>
+              </div>
+              <div class="row-arrow">›</div>
+            </div>
+          </div>
+
+          <div class="footer-strip">
+            <span class="pin pin-tr" style="top:-2px;">3</span>
+            <span data-en="For brands">Pour les marques</span>
+            <span data-en="For broadcasters">Pour les médias</span>
+            <span data-en="About">À propos</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2. PLAYLIST -->
+    <article class="screen">
+      <div class="screen-label">
+        <h2 class="screen-name">Playlist</h2>
+        <p class="screen-role" data-en="Iconic Moments · fans ranking">Iconic Moments · classement des fans</p>
+      </div>
+      <div class="phone">
+        <div class="appbar">
+          <div class="back">‹</div>
+          <div class="wordmark">Iconic Moments</div>
+          <div class="lang"><b>FR</b> / EN</div>
+        </div>
+        <div class="stage">
+          <div class="tabs">
+            <div class="tab on" data-en="Ranking">Classement fans</div>
+            <div class="tab" data-en="Leaderboard">Scores</div>
+            <div class="tab-cta" data-en="▶ Play">▶ Jouer</div>
+          </div>
+
+          <div class="clip">
+            <div class="still"><div class="arc"></div><div class="dur">0:18</div></div>
+            <div class="clip-title">
+              <span class="pin pin-ml">4</span>
+              <span data-en="Messi — solo goal vs Getafe">Messi — but en solo contre Getafe</span>
+            </div>
+            <div class="clip-meta">Copa del Rey · 2007 · 18s</div>
+            <div class="rating"><b>8.4</b> / 10 · 47 votes</div>
+            <div class="btn-primary" data-en="Vote">Voter</div>
+            <div class="link-quiet">
+              <span class="pin pin-mr">6</span>
+              <span data-en="Watch on YouTube ↗">Voir sur YouTube ↗</span>
+            </div>
+          </div>
+
+          <div class="rule"></div>
+
+          <div class="clip">
+            <div class="still"><div class="arc"></div><div class="dur">0:12</div></div>
+            <div class="clip-title">
+              <span data-en="Zidane — volley, Champions League final">Zidane — reprise de volée, finale de Ligue des champions</span>
+            </div>
+            <div class="clip-meta">Glasgow · 2002 · 12s</div>
+            <div class="rating">
+              <span class="pin pin-ml">5</span>
+              <span data-en="Not enough votes yet · be the first">Pas encore assez de votes · sois le premier</span>
+            </div>
+            <div class="btn-primary" data-en="Vote">Voter</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3. MANCHE EN DIRECT -->
+    <article class="screen">
+      <div class="screen-label">
+        <h2 class="screen-name" data-en="Live round">Manche en direct</h2>
+        <p class="screen-role" data-en="The moment the whole thing is for">Le moment pour lequel tout existe</p>
+      </div>
+      <div class="phone">
+        <div class="appbar">
+          <div class="back">‹</div>
+          <div class="wordmark" data-en="Round 3 of 8">Manche 3 sur 8</div>
+          <div class="lang">3 <b data-en="playing">joueurs</b></div>
+        </div>
+        <div class="stage">
+          <div class="still" style="aspect-ratio:16/9;"><div class="arc"></div></div>
+
+          <div class="window">
+            <span class="pin pin-mr">7</span>
+            <div class="window-bar"><i></i><u></u></div>
+            <div class="window-cap">
+              <span data-en="Buzz window open">Fenêtre de buzz ouverte</span>
+              <span data-en="+0.8s">+0,8s</span>
+            </div>
+          </div>
+
+          <div class="buzz">BUZZ</div>
+
+          <div class="players">
+            <div class="player lead"><div class="av">K</div>Keneth<div class="pts">1240</div></div>
+            <div class="player"><div class="av">S</div>Steph<div class="pts">1105</div></div>
+            <div class="player"><div class="av">A</div>Awa<div class="pts">980</div></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4. QUAND ÇA PLANTE -->
+    <article class="screen">
+      <div class="screen-label">
+        <h2 class="screen-name" data-en="When it fails">Quand ça plante</h2>
+        <p class="screen-role" data-en="Same 500 — handled out loud">Le même 500 — assumé</p>
+      </div>
+      <div class="phone">
+        <div class="appbar">
+          <div class="back">‹</div>
+          <div class="wordmark">Iconic Moments</div>
+          <div class="lang"><b>FR</b> / EN</div>
+        </div>
+        <div class="stage">
+          <div class="notice">
+            <span class="pin pin-tr">8</span>
+            <div class="notice-top">
+              <span class="dot"></span>
+              <span class="notice-title" data-en="Can't reach the game server">Impossible de joindre le serveur</span>
+            </div>
+            <p class="notice-body" data-en="Scores and rooms are unavailable right now. You can still watch the clips and vote — anything you do will sync once the connection is back.">Les scores et les salons sont indisponibles pour le moment. Tu peux continuer à regarder les clips et voter — tout sera synchronisé au retour de la connexion.</p>
+            <div class="retry-line">
+              <span data-en="Retrying">Nouvelle tentative</span>
+              <span class="pips"><i class="on"></i><i class="on"></i><i></i></span>
+              <span data-en="attempt 2 of 3">tentative 2 sur 3</span>
+            </div>
+          </div>
+
+          <div class="btn-primary" data-en="Try again">Réessayer</div>
+          <div class="btn-ghost" data-en="Watch without scoring">Regarder sans scorer</div>
+
+          <div class="footer-strip" style="border-top:none;">
+            <span data-en="Still stuck? support@featprint.com">Toujours bloqué ? support@featprint.com</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="legend-block">
+    <h2 class="legend-head" data-en="What changed, and why">Ce qui change, et pourquoi</h2>
+    <ol class="legend">
+      <li><span class="num">1</span><span class="txt" data-en="<b>Header cut to one line.</b> Logo, name, language — about 44px instead of 300.<span class='was'>the header eats roughly 40% of the screen before any content appears</span>"><b>Header réduit à une ligne.</b> Logo, nom, langue — environ 44px au lieu de 300.<span class="was">le header occupe près de 40% de l'écran avant le moindre contenu</span></span></li>
+
+      <li><span class="num">2</span><span class="txt" data-en="<b>One obvious way in.</b> A single primary action at the top; everything else becomes a compact row.<span class='was'>nine identically-weighted full-screen tiles, no clear starting point</span>"><b>Une seule porte d'entrée évidente.</b> Une action principale en haut, tout le reste en lignes compactes.<span class="was">neuf tuiles plein écran de poids identique, aucun point de départ clair</span></span></li>
+
+      <li><span class="num">3</span><span class="txt" data-en="<b>Business links move to the footer.</b> Sponsors and broadcasters stay reachable, they just stop competing with the game.<span class='was'>&laquo;&nbsp;Become a sponsor&nbsp;&raquo; sits as an equal tile beside &laquo;&nbsp;Watch parties&nbsp;&raquo;</span>"><b>Les liens business passent en bas de page.</b> Sponsors et médias restent accessibles, ils cessent juste de concurrencer le jeu.<span class="was">«&nbsp;Become a sponsor&nbsp;» est une tuile à égalité avec «&nbsp;Watch parties&nbsp;»</span></span></li>
+
+      <li><span class="num">4</span><span class="txt" data-en="<b>Clips have names.</b> Almost certainly pullable from the YouTube embed automatically, so nobody types them by hand.<span class='was'>every clip is called &laquo;&nbsp;VIDEO #1&nbsp;&raquo;, &laquo;&nbsp;VIDEO #2&nbsp;&raquo;…</span>"><b>Les clips ont un nom.</b> Presque sûrement récupérable automatiquement depuis l'embed YouTube, donc personne ne les saisit à la main.<span class="was">chaque clip s'appelle «&nbsp;VIDEO #1&nbsp;», «&nbsp;VIDEO #2&nbsp;»…</span></span></li>
+
+      <li><span class="num">5</span><span class="txt" data-en="<b>Ratings wait for a real sample.</b> Under five votes it invites one instead of printing a number.<span class='was'>&laquo;&nbsp;9.0 / 10 · 1 vote&nbsp;&raquo; reads as empty rather than impressive</span>"><b>Les notes attendent un vrai échantillon.</b> En dessous de cinq votes, on en demande un au lieu d'afficher un chiffre.<span class="was">«&nbsp;9.0 / 10 · 1 vote&nbsp;» fait vide plutôt qu'impressionnant</span></span></li>
+
+      <li><span class="num">6</span><span class="txt" data-en="<b>Vote leads, YouTube follows.</b> The off-site link drops to a quiet text link underneath.<span class='was'>&laquo;&nbsp;View on YouTube&nbsp;&raquo; is a full button sitting above &laquo;&nbsp;Vote&nbsp;&raquo;</span>"><b>Voter passe devant YouTube.</b> Le lien externe devient un lien texte discret en dessous.<span class="was">«&nbsp;View on YouTube&nbsp;» est un bouton plein placé au-dessus de «&nbsp;Vote&nbsp;»</span></span></li>
+
+      <li><span class="num">7</span><span class="txt" data-en="<b>The buzz window is visible.</b> Players see the scoring window instead of guessing at an invisible one — and a window wide enough to absorb a second or two of stream delay keeps it fair when everyone isn't perfectly in sync.<span class='was'>timing is invisible, so a slower feed quietly loses every round</span>"><b>La fenêtre de buzz est visible.</b> Les joueurs voient la fenêtre de score au lieu de la deviner — et une fenêtre assez large pour absorber une ou deux secondes de décalage garde le jeu équitable quand tout le monde n'est pas parfaitement synchro.<span class="was">le timing est invisible, donc un flux plus lent perd silencieusement chaque manche</span></span></li>
+
+      <li><span class="num">8</span><span class="txt" data-en="<b>Failures are said out loud, and capped.</b> Three attempts with backoff, an honest message, and a way to keep playing.<span class='was'>5xx errors are swallowed after retries — one call fired 9×, PLAY hangs forever, and every retry is a billed invocation</span>"><b>Les erreurs sont annoncées, et plafonnées.</b> Trois tentatives avec backoff, un message honnête, et un moyen de continuer à jouer.<span class="was">les erreurs 5xx sont masquées après les relances — un appel parti 9×, PLAY qui tourne dans le vide, et chaque relance est facturée</span></span></li>
+    </ol>
+  </section>
+
+  <section class="closing">
+    <h2 data-en="Two things a mockup can't show">Deux choses qu'une maquette ne peut pas montrer</h2>
+    <div>
+      <p class="note-title" data-en="The 500s need logs, not design">Les 500 demandent des logs, pas du design</p>
+      <p class="note-body" data-en="Screen four shows how the failure should <em>behave</em>, but the underlying <code>tiktokRandomApiStation</code> errors have to be diagnosed from the Firebase side. From outside, only the symptom is visible.">L'écran quatre montre comment l'erreur devrait se <em>comporter</em>, mais les erreurs <code>tiktokRandomApiStation</code> doivent être diagnostiquées côté Firebase. De l'extérieur, on ne voit que le symptôme.</p>
+    </div>
+    <div>
+      <p class="note-title" data-en="Titles depend on the data">Les titres dépendent des données</p>
+      <p class="note-body" data-en="Clip names can probably be fetched from the YouTube video IDs already stored against each clip — but that stays a guess until someone looks at how the playlist documents are actually shaped.">Les noms de clips peuvent probablement être récupérés depuis les IDs de vidéos YouTube déjà stockés avec chaque clip — mais ça reste une hypothèse tant que personne n'a regardé la forme réelle des documents de playlist.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  (function(){
+    var page  = document.getElementById('page');
+    var btnFr = document.getElementById('btn-fr');
+    var btnEn = document.getElementById('btn-en');
+    var nodes = document.querySelectorAll('[data-en]');
+
+    // Capture the authored French before anything is swapped.
+    nodes.forEach(function(el){ el.dataset.fr = el.innerHTML; });
+
+    function setLang(lang){
+      var en = lang === 'en';
+      page.classList.toggle('lang-en', en);
+      nodes.forEach(function(el){
+        el.innerHTML = en ? el.dataset.en : el.dataset.fr;
+      });
+      btnFr.setAttribute('aria-pressed', String(!en));
+      btnEn.setAttribute('aria-pressed', String(en));
+    }
+
+    btnFr.addEventListener('click', function(){ setLang('fr'); });
+    btnEn.addEventListener('click', function(){ setLang('en'); });
+  })();
+</script>
