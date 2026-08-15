@@ -524,7 +524,7 @@ function scoreFor(d){
 }
 
 /* ---------------- flow ---------------- */
-var round=0,play=null,t0=0,raf=null,buzzed=null,buzzes=[];
+var round=0,play=null,t0=0,raf=null,buzzed=null,buzzes=[],deadline=null,settled=false;
 
 function startRound(){
   mode('chalk');
@@ -557,7 +557,11 @@ function runClip(){
   slab.className='slab armed'; slab.innerHTML=T('Buzz','Buzz');
   var line=document.getElementById('runline'),zone=document.getElementById('runzone');
   zone.style.opacity=0;
-  buzzed=null; t0=performance.now(); tone(880,.12,.10);
+  buzzed=null; settled=false; t0=performance.now(); tone(880,.12,.10);
+  /* rAF stops when the tab is hidden, so the round also gets a hard deadline.
+     Without it, backgrounding the app freezes the clip and leaves the buzz open. */
+  clearTimeout(deadline);
+  deadline=setTimeout(function(){ frame(play,play.dur,true); settle(); }, play.dur+60);
   (function tick(now){
     var ms=(now||performance.now())-t0;
     if(ms>=play.dur){ frame(play,play.dur,true); settle(); return; }
@@ -571,8 +575,9 @@ document.getElementById('slab').addEventListener('pointerdown',function(e){
   var slab=document.getElementById('slab');
   if(buzzed!==null||!slab.classList.contains('armed')) return;
   e.preventDefault();
-  /* clip time, read at pointerdown — not wall clock, not on release */
-  buzzed=performance.now()-t0;
+  /* clip time, read at pointerdown — not wall clock, not on release.
+     Clamped to the clip, so a throttled frame loop can't invent a late buzz. */
+  buzzed=Math.min(performance.now()-t0, play.dur);
   slab.className='slab spent'; slab.innerHTML=T('Buzzé','Buzzed');
   haptic(26); tone(300,.16,.13);
   dev.classList.add('jolt'); setTimeout(function(){dev.classList.remove('jolt');},320);
@@ -582,6 +587,9 @@ document.getElementById('slab').addEventListener('pointerdown',function(e){
 });
 
 function settle(){
+  if(settled) return;
+  settled=true;
+  clearTimeout(deadline);
   cancelAnimationFrame(raf);
   buzzes=BOTS.map(function(b){
     var spread=(1-b.skill)*1900;
