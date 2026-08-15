@@ -243,6 +243,9 @@
   .pin-tr{top:-9px;right:-7px;}
   .pin-ml{top:50%;left:-7px;transform:translateY(-50%);}
   .pin-mr{top:50%;right:-7px;transform:translateY(-50%);}
+  /* keep text clear of an inline pin */
+  .pinned-left{padding-left:16px;}
+  .pinned-right{padding-right:16px;}
 
   /* ---------- legend ---------- */
   .legend-block{display:flex;flex-direction:column;gap:26px;}
@@ -396,14 +399,14 @@
 
           <div class="clip">
             <div class="still"><div class="arc"></div><div class="dur">0:18</div></div>
-            <div class="clip-title">
+            <div class="clip-title pinned-left">
               <span class="pin pin-ml">4</span>
               <span data-en="Messi — solo goal vs Getafe">Messi — but en solo contre Getafe</span>
             </div>
             <div class="clip-meta">Copa del Rey · 2007 · 18s</div>
             <div class="rating"><b>8.4</b> / 10 · 47 votes</div>
             <div class="btn-primary" data-en="Vote">Voter</div>
-            <div class="link-quiet">
+            <div class="link-quiet pinned-right">
               <span class="pin pin-mr">6</span>
               <span data-en="Watch on YouTube ↗">Voir sur YouTube ↗</span>
             </div>
@@ -417,7 +420,7 @@
               <span data-en="Zidane — volley, Champions League final">Zidane — reprise de volée, finale de Ligue des champions</span>
             </div>
             <div class="clip-meta">Glasgow · 2002 · 12s</div>
-            <div class="rating">
+            <div class="rating pinned-left">
               <span class="pin pin-ml">5</span>
               <span data-en="Not enough votes yet · be the first">Pas encore assez de votes · sois le premier</span>
             </div>
