@@ -21,8 +21,10 @@
     -webkit-font-smoothing:antialiased;display:grid;place-items:center;padding:16px;}
   .num{font-family:var(--font-num);font-variant-numeric:tabular-nums slashed-zero;}
 
+  /* colour is set HERE, not only on body — otherwise inherited text resolves
+     --ink at body level and stays dark when Match Mode flips the device to navy */
   .device{width:min(390px,100%);height:min(788px,calc(100dvh - 32px));
-    background:var(--ground);border-radius:26px;overflow:hidden;position:relative;
+    background:var(--ground);color:var(--ink);border-radius:26px;overflow:hidden;position:relative;
     display:flex;flex-direction:column;
     transition:background-color .22s var(--ease-out),color .22s var(--ease-out);
     box-shadow:0 26px 70px rgba(0,0,0,.45);}
