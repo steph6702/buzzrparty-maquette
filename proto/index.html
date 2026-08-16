@@ -107,7 +107,10 @@
   .clipcard{border-radius:16px;overflow:hidden;position:relative;flex:0 0 auto;background:#000;
     aspect-ratio:16/9;}
   .clipcard iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
-  .veil{position:absolute;inset:0;background:transparent;}   /* blocks YT clicks/scrub */
+  /* Only blocks interaction once the round is armed. Before that the player
+     must be able to reach YouTube's own Skip button on a pre-roll. */
+  .veil{position:absolute;inset:0;background:transparent;pointer-events:none;z-index:2;}
+  .veil.on{pointer-events:auto;}
   .runup{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.16);z-index:2;}
   .runup i{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0;box-shadow:0 0 8px rgba(255,255,255,.9);}
   .freeze{position:absolute;inset:0;background:rgba(7,21,49,.55);opacity:0;transition:opacity .12s;z-index:3;}
@@ -215,6 +218,7 @@
         <div class="rnum" id="c-rnum">1 / 5</div>
         <h2 class="clip-title" id="c-title">—</h2>
         <p class="task" data-en="Call what happens — before it happens.">Annonce ce qui va se passer — avant que ça arrive.</p>
+        <p class="task" id="c-ad" hidden style="color:var(--live);font-weight:600" data-en="A YouTube ad is running. Skip it and the round starts.">Une pub YouTube tourne. Passe-la et la manche démarre.</p>
         <span class="mult" id="c-mult" hidden data-en="Final round · double points">Dernière manche · points doublés</span>
       </div>
     </section>
@@ -428,27 +432,42 @@ function startRound(){
   document.getElementById('c-title').textContent=clip.title;
   document.getElementById('c-mult').hidden=(round!==CLIPS.length-1);
   show('s-card');
-  preload();                       /* load now so any pre-roll burns during the card + countdown */
-  setTimeout(countdown,2300);
+  document.querySelector('.veil').classList.remove('on');
+  if(primedFor!==clip) preloadClip(clip);
+  waitForPrimed();
 }
 
 /* Ads can't be removed from a YouTube embed, only moved out of the way.
-   Loading ~5s before the round means the pre-roll plays over the round card
-   and the countdown, and we hold at the clip's first frame until it's done. */
-var primed=false,primePoll=null;
-function preload(){
-  primed=false;
-  if(!ytReady) return;
-  try{ player.mute(); player.loadVideoById({videoId:clip.yt,startSeconds:clip.start,endSeconds:clip.end}); }
+   Each clip is loaded as early as possible — the NEXT one starts loading
+   during the previous verdict — and the countdown does not begin until the
+   real footage is on screen. So the 3-2-1 is never spent on someone's advert. */
+var primed=false,primedFor=null,primePoll=null;
+function preloadClip(c){
+  if(!ytReady||!c) return;
+  primed=false; primedFor=c;
+  try{ player.mute(); player.loadVideoById({videoId:c.yt,startSeconds:c.start,endSeconds:c.end}); }
   catch(e){ return; }
   clearInterval(primePoll);
   primePoll=setInterval(function(){
     var t=0; try{ t=player.getCurrentTime(); }catch(e){}
-    if(t>=clip.start-0.2){                  /* past any ad, real content reached */
+    if(t>=c.start-0.2){                     /* past any ad, real content reached */
       clearInterval(primePoll); primed=true;
-      try{ player.pauseVideo(); player.seekTo(clip.start,true); }catch(e){}
+      try{ player.pauseVideo(); player.seekTo(c.start,true); }catch(e){}
     }
   },120);
+}
+
+/* Hold on the round card until the clip is genuinely ready.
+   Gives up after 25s so a stuck ad can never freeze the game. */
+function waitForPrimed(){
+  var t0=Date.now(),hint=document.getElementById('c-ad');
+  (function poll(){
+    if(document.getElementById('s-card').classList.contains('on')===false) return;
+    var waited=Date.now()-t0;
+    if((primed&&waited>=2300)||waited>25000){ hint.hidden=true; countdown(); return; }
+    hint.hidden=!(waited>1400&&!primed);
+    setTimeout(poll,150);
+  })();
 }
 
 function countdown(){
@@ -476,7 +495,6 @@ function playClip(){
   document.getElementById('freeze').classList.remove('on');
   document.getElementById('runline').style.left='0%';
   if(!ytReady){ pendingStart=true; return; }
-  if(!primed) preload();                       /* ad still running — keep waiting, don't arm */
   try{ if(SOUND) player.unMute(); player.playVideo(); }catch(e){}
   /* Arm only when the clip's own content is on screen. If an ad is still
      playing, the buttons stay dead — the player is never scored on time
@@ -491,6 +509,7 @@ function playClip(){
 
 function armRound(){
   waitingToArm=false;
+  document.querySelector('.veil').classList.add('on');   /* now block stray taps on the video */
   document.getElementById('picks').className='picks armed';
   tone(880,.12,.10);
   clearTimeout(deadline);
@@ -581,6 +600,11 @@ function verdict(mine){
     if(k<1) requestAnimationFrame(roll);
   })();
   if(right&&ts.p>=900){ burst(); tone(784,.12,.10); setTimeout(function(){tone(1046,.16,.10);},120); }
+
+  /* start the next clip loading now, so its pre-roll runs while this
+     verdict and the leaderboard are on screen instead of during play */
+  document.querySelector('.veil').classList.remove('on');
+  if(CLIPS[round+1]) preloadClip(CLIPS[round+1]);
 
   me.total+=tgt;
   if(mine!==null&&right&&Math.abs(mine)<me.best) me.best=Math.abs(mine);
