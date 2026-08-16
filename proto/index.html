@@ -111,9 +111,13 @@
      must be able to reach YouTube's own Skip button on a pre-roll. */
   .veil{position:absolute;inset:0;background:transparent;pointer-events:none;z-index:2;}
   .veil.on{pointer-events:auto;}
-  .runup{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.16);z-index:2;}
+  .runup{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.16);
+    z-index:4;pointer-events:none;}
   .runup i{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0;box-shadow:0 0 8px rgba(255,255,255,.9);}
-  .freeze{position:absolute;inset:0;background:rgba(7,21,49,.55);opacity:0;transition:opacity .12s;z-index:3;}
+  /* Purely decorative — must never intercept taps, or it swallows the
+     Skip button on a YouTube pre-roll even while fully transparent. */
+  .freeze{position:absolute;inset:0;background:rgba(7,21,49,.55);opacity:0;
+    transition:opacity .12s;z-index:3;pointer-events:none;}
   .freeze.on{opacity:1;}
 
   .picks{flex:1 1 auto;display:flex;flex-direction:column;gap:10px;}
