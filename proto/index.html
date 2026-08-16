@@ -393,8 +393,7 @@ window.onYouTubeIframeAPIReady=function(){
     height:'100%',width:'100%',videoId:CLIPS[0].yt,
     playerVars:{controls:0,disablekb:1,modestbranding:1,rel:0,playsinline:1,fs:0,iv_load_policy:3},
     events:{
-      onReady:function(){ ytReady=true; try{player.mute();}catch(e){} if(pendingStart){pendingStart=false;playClip();} },
-      onStateChange:function(e){ if(e.data===YT.PlayerState.PLAYING && waitingToArm) armRound(); }
+      onReady:function(){ ytReady=true; try{player.mute();}catch(e){} if(pendingStart){pendingStart=false;playClip();} }
     }
   });
 };
@@ -429,7 +428,27 @@ function startRound(){
   document.getElementById('c-title').textContent=clip.title;
   document.getElementById('c-mult').hidden=(round!==CLIPS.length-1);
   show('s-card');
+  preload();                       /* load now so any pre-roll burns during the card + countdown */
   setTimeout(countdown,2300);
+}
+
+/* Ads can't be removed from a YouTube embed, only moved out of the way.
+   Loading ~5s before the round means the pre-roll plays over the round card
+   and the countdown, and we hold at the clip's first frame until it's done. */
+var primed=false,primePoll=null;
+function preload(){
+  primed=false;
+  if(!ytReady) return;
+  try{ player.mute(); player.loadVideoById({videoId:clip.yt,startSeconds:clip.start,endSeconds:clip.end}); }
+  catch(e){ return; }
+  clearInterval(primePoll);
+  primePoll=setInterval(function(){
+    var t=0; try{ t=player.getCurrentTime(); }catch(e){}
+    if(t>=clip.start-0.2){                  /* past any ad, real content reached */
+      clearInterval(primePoll); primed=true;
+      try{ player.pauseVideo(); player.seekTo(clip.start,true); }catch(e){}
+    }
+  },120);
 }
 
 function countdown(){
@@ -457,12 +476,19 @@ function playClip(){
   document.getElementById('freeze').classList.remove('on');
   document.getElementById('runline').style.left='0%';
   if(!ytReady){ pendingStart=true; return; }
-  waitingToArm=true;
-  try{ player.loadVideoById({videoId:clip.yt,startSeconds:clip.start,endSeconds:clip.end}); }
-  catch(e){ armRound(); }
+  if(!primed) preload();                       /* ad still running — keep waiting, don't arm */
+  try{ if(SOUND) player.unMute(); player.playVideo(); }catch(e){}
+  /* Arm only when the clip's own content is on screen. If an ad is still
+     playing, the buttons stay dead — the player is never scored on time
+     they could not act in. */
+  (function waitForContent(){
+    if(settled) return;
+    var t=0; try{ t=player.getCurrentTime(); }catch(e){}
+    if(t>=clip.start-0.05){ armRound(); return; }
+    requestAnimationFrame(waitForContent);
+  })();
 }
 
-/* armed only once the video is actually playing — never before the player can act */
 function armRound(){
   waitingToArm=false;
   document.getElementById('picks').className='picks armed';
