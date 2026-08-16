@@ -125,6 +125,7 @@
     border:1.5px solid currentColor;border-radius:7px;padding:3px 7px;flex:0 0 auto;opacity:.75;}
   .picks.armed .pick{border-color:var(--live);color:var(--ink);cursor:pointer;}
   .picks.armed .pick:active{transform:scale(.985);}
+  .picks.locked .pick{cursor:default;}
   .pick.chosen{background:var(--live);border-color:var(--live);color:#fff;}
   .pick.dim{opacity:.32;}
   .pick:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
@@ -473,7 +474,13 @@ function armRound(){
     var t=0; try{ t=player.getCurrentTime(); }catch(e){}
     var f=Math.max(0,Math.min(1,(t-clip.start)/(clip.end-clip.start)));
     document.getElementById('runline').style.left=(f*100)+'%';
-    if(t>=clip.end-0.05 && t>clip.start){ settle(); return; }
+    if(t>=clip.end-0.05 && t>clip.start){
+      /* clip has played out — freeze on the last frame for a beat, then judge */
+      document.getElementById('freeze').classList.add('on');
+      try{ player.pauseVideo(); }catch(e){}
+      setTimeout(settle,700);
+      return;
+    }
     raf=requestAnimationFrame(tick);
   })();
 }
@@ -486,12 +493,11 @@ function choose(side){
   choice=side;
   document.getElementById('pick-'+side).classList.add('chosen');
   document.getElementById('pick-'+(side==='L'?'R':'L')).classList.add('dim');
-  picks.className='picks';
-  document.getElementById('freeze').classList.add('on');
-  try{ player.pauseVideo(); }catch(e){}
+  picks.className='picks locked';
   haptic(26); tone(300,.16,.13);
   dev.classList.add('jolt'); setTimeout(function(){dev.classList.remove('jolt');},320);
-  setTimeout(settle,450);
+  /* The clip keeps running. You called it — now you watch it happen.
+     The verdict waits for the end of the clip, not for the buzz. */
 }
 ['L','R'].forEach(function(s){
   document.getElementById('pick-'+s).addEventListener('pointerdown',function(e){e.preventDefault();choose(s);});
